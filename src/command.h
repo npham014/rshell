@@ -16,12 +16,14 @@ class command {
     
     public:
     vector<string> commands;
-    int status;
-    int getStatus();           //returns the status of the command
-    command() {status = 1;};
-    command(vector<string> commInputs);
-    void runCommand();
+    int status;                                 //check if it runs correctly
+    bool ready;                                 //check if it has run yet or ready to be ran
     
+    int getStatus();                            //returns the status of the command
+    command() {status = 1; ready = true;};
+    command(vector<string> commInputs);
+    int runCommand();
+    void rshellExit();
 };
 
 #endif

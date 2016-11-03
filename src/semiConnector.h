@@ -6,8 +6,8 @@
 class semiConnector :public connector {
     
     public:
-    semiConnector(){ };
-    void run(command* left, command* right);
+    semiConnector() {};
+    void run(command* left, command* right);        
 };
 
 #endif

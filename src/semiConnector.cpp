@@ -3,8 +3,9 @@
 
 
 void semiConnector::run(command* left, command* right){
-
-    left->runCommand();                 //runs both commands regardless of status
-    right->runCommand();
+    if (left->ready) {              //checks if the first function was run yet
+        left->runCommand();                 
+    }
+    right->runCommand();            //runs the second regardless
 
 }

@@ -30,11 +30,11 @@ class RShell {
         vector<string> connectorTokens;
         vector<connector*> connectorList;
         RShell();
-        void Run();
-        void Parse(string commandLine);
-        void createCommands();
-        void runAllCommands();
-        void clearCommands();
+        void Run();                             //runs the entire program
+        void Parse(string commandLine);         //filters through the commands and connectors
+        void createCommands();                  //filters through chunks to seperate commands and arguments
+        int runAllCommands();                   //executes the commands and connectors
+        void clearCommands();                   //clears all of the allocated memory
 };
 
 #endif

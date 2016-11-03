@@ -15,39 +15,45 @@ void RShell::Run() {
         if (input == "exit") {                      //if the user enters exit, the shell closes.
             break;
         }
-        Parse(input);                               
-        createCommands();
-        runAllCommands();
+        Parse(input);                               //sorts through the information
+        createCommands();                           //then it creates the commands to run later
+        int checkExit = runAllCommands();           //if a command returned -5, it was an exit. 
+        if(checkExit == -5) {                       //This kills the program.
+            break;
+        }
         
-        clearCommands();
-    }while (input != "exit");
+        clearCommands();                            //deletes all allocated memory
+    } while (input != "exit");
     
 }
 
 
 
 void RShell::Parse(string commandLine) {                    //This function breaks the command line into sections, based on connectors.
-    if(commandLine == "") {//Make sure something was entered
+    if(commandLine == "") {                                 //Make sure something was entered
         return;
     }
+    
    
     string tempToken;
-    int ampPos = 999; //Set positions to some high numbers so that they can be sorted through below (in case of multiple connectors)
+    int ampPos = 999;                                       //Set positions to some high numbers so that they can be sorted through below (in case of multiple connectors)
     int linePos = 999;
     int semiPos = 999;
     int minPos = 9999999;
-    if(commandLine.find("#") != string::npos) { //Delete any comments, they won't be necessary.
+    if(commandLine.find("#") != string::npos) {             //Delete any comments, they won't be necessary.
         commandLine.erase(commandLine.find("#"), (commandLine.size() - commandLine.find("#")));
     }
+    
+    
    
     
     while(commandLine.find("&&") != string::npos || commandLine.find("||") != string::npos || commandLine.find(";") != string::npos) {//Search for connectors
                 
-        if(isspace(commandLine.at(0))) {//Delete spaces that are next to connectors to make things easier to parse.
+        if(isspace(commandLine.at(0))) {                //Delete spaces that are next to connectors to make things easier to parse.
             commandLine.erase(0, 1);
         }
         
-        if(commandLine.find("&&") != string::npos) {//Find the positions of any &&'s, ||'s, or ;'s
+        if(commandLine.find("&&") != string::npos) {    //Find the positions of any &&'s, ||'s, or ;'s
             ampPos = commandLine.find("&&");
         }
         if(commandLine.find("||") != string::npos) {
@@ -57,14 +63,20 @@ void RShell::Parse(string commandLine) {                    //This function brea
             semiPos = commandLine.find(";");
         }
         
-        minPos = min(min(ampPos, linePos), semiPos); //Find the one closest to the left to keep commands in order.
+        minPos = min(min(ampPos, linePos), semiPos);    //Find the one closest to the left to keep commands in order.
+        
+        string soloConnector = commandLine.substr(0, minPos + 2);
+        soloConnector.erase( std::remove_if( soloConnector.begin(), soloConnector.end(), ::isspace ), soloConnector.end() );
+        if(soloConnector == "&&" || soloConnector == "||" || soloConnector == ";") {
+            return;
+        }
         
     
-        tempToken = commandLine.substr(0, minPos);//push the string into the vector of unbroken-up command lines.
+        tempToken = commandLine.substr(0, minPos);      //push the string into the vector of unbroken-up command lines.
         tokens.push_back(tempToken);
         commandLine.erase(0, minPos);
 
-        if(commandLine != "") { //This part pushes the connectors themselves into a vector.
+        if(commandLine != "") {                         //This part pushes the connectors themselves into a vector.
             if(commandLine.at(0) != ';') {
                 string conToken = commandLine.substr(0, 2);
                 connectorTokens.push_back(conToken);
@@ -76,31 +88,25 @@ void RShell::Parse(string commandLine) {                    //This function brea
                 commandLine.erase(0, 1);
             }
         }
-        
-        if(isspace(commandLine.at(0))) {//cleaning up more spaces
+        if(isspace(commandLine.at(0))) {                //cleaning up more spaces
             commandLine.erase(0, 1);
         }
-        ampPos = 999; //Reset the positions so they can be compared again
+        ampPos = 999;                                   //Reset the positions so they can be compared again
         linePos = 999;
         semiPos = 999;
     }
-    
-    tokens.push_back(commandLine); //If there are no connectors, or there are no more connectors, push whatevers left.
-    
-    // for(int i = 0; i < tokens.size(); ++i) {
-    //     cout << tokens.at(i) << endl;
-    // }
-    
+    tokens.push_back(commandLine);                      //If there are no connectors, or there are no more connectors, push whatevers left.
 }
 
 void RShell::createCommands() {
+    
     if(tokens.size() == 0) { //If there was no input, don't run this
         return;
     }
     int pos = 0;
     string temp = "";
 
-    for(int i = 0; i < tokens.size(); ++i) {// This for loop breaks each object in the token vector into it's individual parts.
+    for(unsigned int i = 0; i < tokens.size(); ++i) {// This for loop breaks each object in the token vector into it's individual parts.
         vector<string> brokenChunks;
         do {// This is the part that actually breaks it into parts. the outer loop iterates through the tokens.
             pos = tokens.at(i).find(" ");
@@ -114,14 +120,14 @@ void RShell::createCommands() {
         commandChunks.push_back(brokenChunks);
     }
     
-    for(int z = 0; z < commandChunks.size(); ++z) {    //Push a bunch of commands into a vector of commands.
+    for(unsigned int z = 0; z < commandChunks.size(); ++z) {    //Push a bunch of commands into a vector of commands.
         command* curr = new command(commandChunks.at(z));
         commandList.push_back(curr);
     }
     
     
     
-    for(int b = 0; b < connectorTokens.size(); ++b) { //push all the connector tokens from earlier into a vector of connectors.
+    for(unsigned int b = 0; b < connectorTokens.size(); ++b) { //push all the connector tokens from earlier into a vector of connectors.
         if(connectorTokens.at(b) == "&&") {
             connector* temp = new andConnector();
             connectorList.push_back(temp);
@@ -138,40 +144,24 @@ void RShell::createCommands() {
     
 }
 
-void RShell::runAllCommands() { //Iterate through the vector of commands and run them, based on whether they were part of a connector bunch or not.
-    for(int i = 0; i < connectorList.size(); ++i) {
-        if(commandList.size() > 1) {
-            connectorList.at(0)->run(commandList.at(0), commandList.at(1));
-            connectorList.erase(connectorList.begin());
-            commandList.erase(commandList.begin());
-            commandList.erase(commandList.begin());
+int RShell::runAllCommands() { //Iterate through the vector of commands and run them, based on whether they were part of a connector bunch or not.
+    if(commandList.size() == 0) {
+        return 0;
+    }
+    
+    if (commandList.size() == 1) {
+        commandList.at(0)->runCommand();
+        return 0;
+    }
+    
+    for(unsigned int i = 0; i < connectorList.size(); ++i) {                        //Pass two commands into connectors.
+        
+        connectorList.at(i)->run(commandList.at(i), commandList.at(i + 1));         //The connector then runs them/determines if they should be run
+        if(commandList.at(i)->status == -5 || commandList.at(i + 1)->status == -5) { //This is to check if an exit was thrown into the mix
+            return -5;
         }
     }
-    if(!(commandList.empty())) {
-        commandList.at(0)->runCommand();
-    }
-
-    // while(commandList.size() > 0) {
-    //     if(commandList.size() > 1) {
-    //         connectorList.at(0)->left = commandList.at(0);
-    //         connectorList.at(0)->right = commandList.at(1);
-    //         connectorList.at(0)->run();
-            
-    //         connectorList.erase(connectorList.begin());
-    //         commandList.erase(commandList.begin());
-    //         commandList.erase(commandList.begin());
-    //     }
-    //     else if(commandList.size() == 1) {
-    //         commandList.at(0)->runCommand();
-    //         commandList.erase(commandList.begin());
-    //     }
-    // }
-    // for(int i = 0; i < commandList.size(); ++i) {
-        
-    //     commandList.at(i)->runCommand(commandChunks.at(i));
-        
-    // }
-    
+    return 0;
 }
 
 void RShell::clearCommands() { //Get rid of any left over stuff to get ready for the next line of commands.
@@ -181,14 +171,3 @@ void RShell::clearCommands() { //Get rid of any left over stuff to get ready for
     commandList.clear();
     connectorTokens.clear();
 }
-    
-    // char* tempToken;
-    // tempToken = strtok(commandLine, " ");
-    
-    // vector<string> tokens;
-    // while(commandLine != NULL) {
-    //     cout << tempToken << endl;
-    //     tokens.push_back(tempToken);
-    //     tempToken = strtok(NULL, " ");
-    // }
-    

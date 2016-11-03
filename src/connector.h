@@ -7,7 +7,7 @@ class connector {
     
   public:
     
-    virtual void run(command*, command*) = 0;
+    virtual void run(command*, command*) = 0;         //abstract base class for connectors
 };
 
 #endif
