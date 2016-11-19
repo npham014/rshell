@@ -14,6 +14,9 @@ Once seperated, it executes the commands based off the runability and connectors
 ###Bugs Involving Test:
 
 -Strange punctuation e.g. ' causes crash
+.
+-Unable to go up directories. Not sure how to implement this.
+-Testing with connectors only runs the first in the chain.
 
--Unable to go up directories. Not sure how to implement this
--Testing with connectors only runs the first in the chain
+###Bugs with Precedence:
+-Parenthesis were not properly determining the success between connectors and caused instability involving certain chains of commands. They have been ommitted from this stable version.
