@@ -16,3 +16,4 @@ Once seperated, it executes the commands based off the runability and connectors
 -Strange punctuation e.g. ' causes crash
 
 -Unable to go up directories. Not sure how to implement this
+-Testing with connectors only runs the first in the chain
