@@ -17,6 +17,7 @@ void RShell::Run() {
         }
         Parse(input);                               //sorts through the information
         createCommands();                           //then it creates the commands to run later
+        
         int checkExit = runAllCommands();           //if a command returned -5, it was an exit. 
         if(checkExit == -5) {                       //This kills the program.
             break;
@@ -107,7 +108,7 @@ void RShell::createCommands() {
     string temp = "";
 
     for(unsigned int i = 0; i < tokens.size(); ++i) {// This for loop breaks each object in the token vector into it's individual parts.
-        vector<string> brokenChunks;
+        vector<string> brokenChunks;                
         do {// This is the part that actually breaks it into parts. the outer loop iterates through the tokens.
             pos = tokens.at(i).find(" ");
             temp = tokens.at(i).substr(0, pos);
@@ -120,11 +121,77 @@ void RShell::createCommands() {
         commandChunks.push_back(brokenChunks);
     }
     
+    for(unsigned c = 0; c < commandChunks.size(); ++c) {//This loop will go through the command chunks (vector of command lines broken up by token. e.g.: commandChunks.at(1) = [ls, -l]
+        if(commandChunks.at(c).at(0) == "test") {//Looping through big vector to check if there are any tests in it. If there is, create a new Test object.
+        
+            if(commandChunks.at(c).size() == 3){
+                if(commandChunks.at(c).at(1) == "-f") {//if statements for different flags
+                    Test* temp = new Test(commandChunks.at(c).at(2),"-f");//Make a new test object (inherited from command)
+                    commandList.push_back(temp);//Push the test command into the list
+                    commandChunks.erase(commandChunks.begin());//If a test command was made, get rid of it now. (So that it won't get pushed twice)
+                    break;
+                }
+                else if(commandChunks.at(c).at(1) == "-d") {
+                    Test* temp = new Test(commandChunks.at(c).at(2),"-d");
+                    commandList.push_back(temp);
+                    commandChunks.erase(commandChunks.begin());
+                    break;
+                }
+                else if(commandChunks.at(c).at(1) == "-e") {//Flag set to -e
+                    Test* temp = new Test(commandChunks.at(c).at(2),"-e");
+                    commandList.push_back(temp);
+                    commandChunks.erase(commandChunks.begin());
+                    break;
+                }//End inner else
+                else {
+                    cout << "Error invalid flag input" << endl;
+                }
+            }//End "test" token size check
+            
+            if(commandChunks.at(c).size() == 2) {//There was no flag. Defaults to -e
+                Test* temp = new Test(commandChunks.at(c).at(1), "-e");
+                commandList.push_back(temp);
+                commandChunks.erase(commandChunks.begin());
+                break;
+            }
+            
+        }//end "test" token if
+        
+        if(commandChunks.at(c).at(0).at(0) == '[') {//In the case that brackets were used instead of test
+            commandChunks.at(c).at(0).erase(commandChunks.at(c).at(0).begin());  //Delete the bracket
+            string LastCommand = commandChunks.at(c).at(commandChunks.at(c).size() - 1);
+            if(LastCommand.at(LastCommand.size() - 1) == ']') {
+                 //commandChunks.at(c).at(commandChunks.at(c).size() - 1).erase(commandChunks.at(c).at(commandChunks.at(c).size() - 1).end());//Delete the other bracket
+                if(commandChunks.at(c).size() == 2) {//all numbers in this if have been scaled down 1 from the above if, because there is no "test" token
+                    if(commandChunks.at(c).at(0) == "-f") {//if statements for different flags
+                        Test* temp = new Test(commandChunks.at(c).at(1).substr(0, commandChunks.at(c).at(1).size() - 1),"-f");//Make a new test object (inherited from command)
+                        commandList.push_back(temp);//Push the test command into the list
+                        commandChunks.erase(commandChunks.begin());
+                        break;
+                    }
+                    else if(commandChunks.at(c).at(0) == "-d") {
+                        Test* temp = new Test(commandChunks.at(c).at(1).substr(0, commandChunks.at(c).at(1).size() - 1),"-d");
+                        commandList.push_back(temp);
+                        commandChunks.erase(commandChunks.begin());
+                        break;
+                    }
+                    else {//Flag set to -e or none was input. Either way defaults to -e
+                        Test* temp = new Test(commandChunks.at(c).at(1).substr(0, commandChunks.at(c).at(1).size() - 1),"-e");
+                        commandList.push_back(temp);
+                        commandChunks.erase(commandChunks.begin());
+                        break;
+                    }// End inner else
+                }// End [] size check                
+            }// End ] check
+
+        }// End main [ if
+    }//End "test" command loop
+    
+    
     for(unsigned int z = 0; z < commandChunks.size(); ++z) {    //Push a bunch of commands into a vector of commands.
         command* curr = new command(commandChunks.at(z));
         commandList.push_back(curr);
     }
-    
     
     
     for(unsigned int b = 0; b < connectorTokens.size(); ++b) { //push all the connector tokens from earlier into a vector of connectors.
@@ -141,7 +208,6 @@ void RShell::createCommands() {
             connectorList.push_back(temp);
         }
     }
-    
 }
 
 int RShell::runAllCommands() { //Iterate through the vector of commands and run them, based on whether they were part of a connector bunch or not.

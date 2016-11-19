@@ -11,3 +11,8 @@ Once seperated, it executes the commands based off the runability and connectors
 ##Bugs
 -Program crashes when a list of multiple semi-colons joined together between commands
 -Program crashes when a list of multiple semi-colons are together without any commands
+###Bugs Involving Test:
+
+-Strange punctuation e.g. ' causes crash
+
+-Unable to go up directories. Not sure how to implement this
