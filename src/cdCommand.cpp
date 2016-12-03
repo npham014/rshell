@@ -15,25 +15,34 @@ int cdCommand::runCommand(){
     }
     
     if (commands.size() == 1){ //If command is just "cd" -> goes to the home directory      (CASE: 1)
-        const char* homecstring = "HOME";
-        if (chdir(homecstring)){
-            const char* temp = getenv("PWD");
-            const char* hum = getenv("HOME");
-            if (setenv("PWD", hum, 1)){
+        char* home = getenv("HOME");
+        char* newPrev = getenv("PWD");
+        if(!home || !newPrev) { //If either of these didn't work it shold be NULL. !NULL means there was an error
+            this->status = 0;
+            this->ready = false;
+            return status;
+        }
+        if(chdir(home) < 0) {
+            this->status = 0;
+            this->ready = false;
+            
+            return status;
+        }
+        else {
+            if(setenv("PWD", home, 1) < 0 ){
                 this->status = 0;
                 this->ready = false;
                 return status;
             }
-            else if (setenv("OLDPWD", temp, 1)){
+            if(setenv("OLDPWD", newPrev, 1) < 0 ){
                 this->status = 0;
                 this->ready = false;
                 return status;
             }
-            else{
-                this->ready = 0;
-                return status;
-            }
-        } 
+
+            this->ready = false;
+            return status;
+        }
     } 
     char* path = new char[commands.at(1).size()];
     
@@ -42,6 +51,7 @@ int cdCommand::runCommand(){
     }
     
     if (commands.at(1) == "-"){         //visit previous directory (CASE: 2)
+        
         path = getenv("OLDPWD");
         const char* path2 = getenv("PWD");
         if (chdir(path)){               //check if it changes directory (fail)
@@ -49,15 +59,17 @@ int cdCommand::runCommand(){
             this->ready = false;
             return this->status;
         }
-        
-        
-        
-        if (setenv("PWD", path, 1)){      //if you cannot change the current env pointer to the previous (fail)
+        if(!path || !path2) {       //Make sure that oldpwd and pwd exist
+            this->status = 0;
+            this->ready = false;
+            return this->status;
+        }
+        if (setenv("PWD", path, 1) < 0){      //if you cannot change the current env pointer to the previous (fail)
             this->status = 0;
             this->ready = false;
             return status;
         }
-        else if (setenv("OLDPWD", path2, 1)){    //if you cannot change the OLDPWD to the new previous (fail)
+        else if (setenv("OLDPWD", path2, 1) < 0){    //if you cannot change the OLDPWD to the new previous (fail)
             this->status = 0;
             this->ready = false;
             return status;
