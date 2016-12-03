@@ -10,6 +10,12 @@ void RShell::Run() {
     string input = "";
     
     do {
+        char* path = getenv("PWD");
+        char* buf = getcwd(path,1000); //using size 1000 to test
+        if (buf){
+            printf("%s",buf);
+            cout << " ";
+        }
         cout << "$";                                //continuously asks for user commands until exit is called
         getline(cin, input);                    
         if (input == "exit") {                      //if the user enters exit, the shell closes.
@@ -121,6 +127,15 @@ void RShell::createCommands() {
         commandChunks.push_back(brokenChunks);
     }
     
+    // for(unsigned d = 0; d < commandChunks.size(); ++d) {
+    //     if(commandChunks.at(d).at)
+    // }
+    // for(unsigned p = 0; p < commandChunks.size(); ++p) {
+    //     if(commandChunks.at(p).at(0) == "cd") {
+            
+    //     }
+    // }
+    
     for(unsigned c = 0; c < commandChunks.size(); ++c) {//This loop will go through the command chunks (vector of command lines broken up by token. e.g.: commandChunks.at(1) = [ls, -l]
         if(commandChunks.at(c).at(0) == "test") {//Looping through big vector to check if there are any tests in it. If there is, create a new Test object.
         
@@ -187,10 +202,17 @@ void RShell::createCommands() {
         }// End main [ if
     }//End "test" command loop
     
+
     
-    for(unsigned int z = 0; z < commandChunks.size(); ++z) {    //Push a bunch of commands into a vector of commands.
+    for(unsigned int z = 0; z < commandChunks.size(); ++z) {    //check whether the command is cd or other, then push back
+        if (commandChunks.at(z).at(0) == "cd"){
+            command* ceedee = new cdCommand(commandChunks.at(z));
+            commandList.push_back(ceedee);
+        }
+        else{
         command* curr = new command(commandChunks.at(z));
         commandList.push_back(curr);
+        }
     }
     
     
