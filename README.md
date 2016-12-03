@@ -20,3 +20,8 @@ Once seperated, it executes the commands based off the runability and connectors
 
 ###Bugs with Precedence:
 -Parenthesis were not properly determining the success between connectors and caused instability involving certain chains of commands. They have been ommitted from this stable version.
+
+###Bugs with cd:
+-cd - currently causing segmentation faults in some cases.
+-cd after cd fails in some cases
+-cd home after cd fails in some cases
